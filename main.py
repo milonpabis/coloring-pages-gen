@@ -6,4 +6,4 @@ if __name__ == "__main__":
     print(generator.get_words())
 
     scraper = HQImageScraper()
-    scraper.get_urls("test")
+    scraper.download_images("dog")
