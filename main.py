@@ -2,8 +2,7 @@ from assets.CBGenerator import CBGenerator, HQImageScraper
 
 
 if __name__ == "__main__":
-    generator = CBGenerator("test", 100)
+    generator = CBGenerator("food", 20)
     print(generator.get_words())
 
-    scraper = HQImageScraper()
-    scraper.download_images("dog")
+    HQImageScraper.download_multiple_images(words = generator.get_words())
