@@ -147,8 +147,9 @@ class HQImageScraper:
                 url.click()
                 try:
                     img = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, IMG_CLASS)))
-                    if img.get_attribute("src") not in word_urls:
-                        word_urls.append(img.get_attribute("src"))
+                    if img.get_attribute("src") not in word_urls and img.get_attribute("src") != None:
+                        if not img.get_attribute("src").endswith(".gif"):
+                            word_urls.append(img.get_attribute("src"))
                 except Exception:
                     pass
             except Exception:
