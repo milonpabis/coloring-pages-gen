@@ -27,15 +27,16 @@ class CBGenerator:
         self.__path = path
 
     
-    def run(self, category: str, amount: int, method: int = 3) -> None:
-        words = WordRandomizer.generate(category, amount)
+    def run(self, amount: int = 20, category: str = "music", method: int = 3, words: list[str] = None, preview: bool = False) -> None:
+        if not words:
+            words = WordRandomizer.generate(category, int(amount/10))
         os.makedirs(self.__path, exist_ok=True)
         os.makedirs(self.__path + "ready/", exist_ok=True)
         HQImageScraper.download_multiple_images(words, self.__path)
         for image in os.listdir(self.__path):
             if image.endswith(".jpg") and image:
-                self.process_image(self.__path + image, method=3, preview=False)
-            else: print(image)
+                self.process_image(self.__path + image, method=method, preview=preview)
+            else: print("SKIPPED:", image)
 
     
     def get_path(self) -> str:
@@ -105,7 +106,7 @@ class WordRandomizer:
         except requests.exceptions.HTTPError as e:
             return ["Error sign"]
         result = BeautifulSoup(response.text, "html.parser")
-        return [span.find("a").text for span in result.find_all("span", class_="term")[:int(amount/10)]]
+        return [span.find("a").text for span in result.find_all("span", class_="term")[:amount]]
     
 
 class HQImageScraper:
@@ -134,7 +135,11 @@ class HQImageScraper:
                 cookies = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, COOKIES_XPATH2)))
                 cookies.click()
             except Exception:
-                pass
+                try:
+                    cookies = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'Zaakceptuj wszystko')]")))
+                    cookies.click()
+                except Exception:
+                    pass
 
 
         container = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.XPATH, MAIN_DIV_XPATH)))
@@ -144,16 +149,20 @@ class HQImageScraper:
         while not len(word_urls) == 10:
             url = urls[cc]
             try:
-                url.click()
+                if url.get_attribute("data-sz") != "16":
+                    raise Exception
+            except Exception:
                 try:
-                    img = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, IMG_CLASS)))
-                    if img.get_attribute("src") not in word_urls and img.get_attribute("src") != None:
-                        if not img.get_attribute("src").endswith(".gif"):
-                            word_urls.append(img.get_attribute("src"))
+                    url.click()
+                    try:
+                        img = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, IMG_CLASS)))
+                        if img.get_attribute("src") not in word_urls and img.get_attribute("src") != None:
+                            if not img.get_attribute("src").endswith(".gif"):
+                                word_urls.append(img.get_attribute("src"))
+                    except Exception:
+                        pass
                 except Exception:
                     pass
-            except Exception:
-                pass
             cc += 1
 
         driver.quit()
