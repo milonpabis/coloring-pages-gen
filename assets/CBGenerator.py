@@ -11,6 +11,7 @@ import cv2 as cv
 import numpy as np
 import shutil
 import os
+from time import sleep
 
 
 URL = "https://relatedwords.io/"
@@ -18,7 +19,6 @@ MAIN_DIV_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[1]/div/div/div/div/div[1]/d
 IMG_CLASS = ".sFlh5c.pT0Scc.iPVvYb"
 COOKIES_XPATH = "/html/body/c-wiz/div/div/div/div[2]/div[1]/div[3]/div[1]/div[1]/form[2]/div/div/button/span"
 COOKIES_XPATH2 = "/html/body/c-wiz/div/div/div/div[2]/div[1]/div[3]/div[1]/div[1]/form[2]/div/div/button/div[3]"
-
 
 
 class CBGenerator:
@@ -130,16 +130,19 @@ class HQImageScraper:
         try:
             cookies = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, COOKIES_XPATH)))
             cookies.click()
-        except Exception:
+        except Exception as e:
+            print("COOKIES:", e)
             try:
                 cookies = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, COOKIES_XPATH2)))
                 cookies.click()
-            except Exception:
+            except Exception as e:
+                print("COOKIES:", e)
                 try:
                     cookies = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'Zaakceptuj wszystko')]")))
                     cookies.click()
-                except Exception:
-                    pass
+                except Exception as e:
+                    print("COOKIES:", e)
+                    sleep(30)
 
 
         container = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.XPATH, MAIN_DIV_XPATH)))
@@ -209,7 +212,7 @@ class HQImageScraper:
         Returns: 
             None 
         """
-        MULTI = True
+        MULTI = False
         start = dt.datetime.now()
 
         if MULTI:
@@ -225,9 +228,14 @@ class HQImageScraper:
                 thread.join()
         else:
             for word in words:
-                HQImageScraper.download_images(word)
+                HQImageScraper.download_images(word, path)
 
         print("All images downloaded. TIME:", dt.datetime.now() - start)
+
+# TODO:
+        # 1. When skips a lot of images -> clicks a link - block it
+        # 2. Multithreading upgrade - concurret.futures
+        # 3. Cookies problem - fix it, make it universal
 
 
 
