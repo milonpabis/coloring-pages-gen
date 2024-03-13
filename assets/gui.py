@@ -1,14 +1,15 @@
 import flet as ft
 import winreg
+import math
+import os
+from assets.CBGenerator import CBGenerator
 
 
 class GUI:
 
     def __init__(self):
-        self.picker = ft.FilePicker(on_result=lambda f: self.change_dir(f.path))
+        self.picker = ft.FilePicker(on_result=lambda f: self.change_dir(f.path))    # FilePicker instance
         self.path = get_desktop_path()
-        self.amount = 20
-        self.words = []
         self.OWN = False
         self.page = None
 
@@ -27,7 +28,7 @@ class GUI:
         
 
 
-
+        # HEADER CONTAINER
         self.header = ft.Container(
             content = ft.Text("Coloring Pages Generator",
                               size=35,
@@ -44,6 +45,7 @@ class GUI:
             shadow=ft.BoxShadow(spread_radius=6, blur_radius=10, color="black")
         )
 
+        # CATEGORY/WORDS INPUT CONTAINER
         self.category_input = ft.Container(
             content = ft.TextField(hint_text="e.g. spring",
                                    label="Category",
@@ -67,8 +69,9 @@ class GUI:
             shadow=ft.BoxShadow(spread_radius=4, blur_radius=10, color="black")
         )
 
+        # AMOUNT INPUT CONTAINER
         self.amount_input = ft.Container(
-            content = ft.TextField(hint_text="20",
+            content = ft.TextField(hint_text="eg. 20",
                                    label="Amount",
                                    hint_style=ft.TextStyle(color="blue"),
                                    input_filter=ft.InputFilter(allow=True, regex_string=r"[0-9]", replacement_string=""),
@@ -91,7 +94,7 @@ class GUI:
         
 
 
-
+        # FILE PICKER CONTAINER
         file_path_selector = ft.Container(
             content = ft.IconButton(icon="folder", icon_size=50, on_click=lambda e: self.picker.get_directory_path()),
             border_radius=30,
@@ -104,7 +107,7 @@ class GUI:
             shadow=ft.BoxShadow(spread_radius=4, blur_radius=10, color="black"))
 
 
-
+        # BUTTONS CONTAINER
         self.buttons = ft.Container(
             content = ft.Row(
                 [
@@ -123,6 +126,8 @@ class GUI:
             border=ft.border.all(2, "blue"),
             shadow=ft.BoxShadow(spread_radius=4, blur_radius=10, color="black"))
         
+
+        # MAIN CONTAINER
         container = ft.Container(
                 content=ft.Container(
                          content=ft.Column(controls=[self.header, self.category_input, self.amount_input, file_path_selector, self.buttons]),
@@ -145,29 +150,62 @@ class GUI:
         self.page.add(container)
 
     def reset(self, e):
+        self.amount_input.shadow.color = "black"
+        self.category_input.shadow.color = "black"
+
         try:
-            am = self.amount_input.content.value
-            if am and int(am) >= 10:
-                self.amount = am
-                print(self.amount)
+            self.amount_input.content.value = ""
         except Exception:
             pass
+        try:
+            self.category_method()
+        except Exception:
+            pass
+        self.page.update()
 
     def start(self, e):
-        print(self.path)
+        ERROR_GATE = False
+        try:
+            AM = round(int(self.amount_input.content.value), -1)
+            if AM < 10:
+                raise Exception
+            self.amount_input.shadow.color = "black"
+        except Exception:       # AMOUNT ERROR
+            ERROR_GATE = True
+            self.amount_input.shadow.color = "#781414"
+
+        try:
+            CAT = self.category_input.content.value
+            if CAT.strip() == "":
+                raise Exception
+            self.category_input.shadow.color = "black"
+        except Exception:       # CATEGORY ERROR
+            ERROR_GATE = True
+            self.category_input.shadow.color = "#781414"
+        self.page.update()
+        
+        ### GENERATE COLORING PAGES
+        if not ERROR_GATE:
+            if os.path.exists(self.path):
+                generator = CBGenerator(self.path)
+                if self.OWN:
+                    print(self.path, AM, split_words(CAT))
+                    #generator.run(amount=AM, words=split_words(CAT))
+                else:
+                    print(self.path, AM, CAT)
+                    #generator.run(amount=AM, category=CAT)
+
+
 
     def own_words(self, e):
-        if not self.OWN:
-            self.OWN = True
-            self.category_input.content.label = "Words"
-            self.category_input.content.hint_text = "e.g. tree, banana, sun"
-            print(self.OWN, self.category_input.content.label)
-        else:
-            self.OWN = False
-            self.category_input.content.label = "Category"
-            self.category_input.content.hint_text = "e.g. spring"
-
-            print(self.OWN, self.category_input.content.label)
+        try:
+            if not self.OWN:
+                self.words_method()
+            else:
+                self.category_method()
+        except Exception as e:
+            print("ERROR", e)
+            pass
         self.page.update()
 
     def change_dir(self, path):
@@ -175,6 +213,24 @@ class GUI:
             self.path = path
         else:
             self.path = get_desktop_path()
+
+    def category_method(self):
+        self.OWN = False
+        self.category_input.content.label = "Category"
+        self.category_input.content.value = ""
+        self.category_input.content.prefix_text = None
+        self.category_input.content.suffix_text = None
+        self.category_input.content.input_filter=ft.InputFilter(allow=True, regex_string=r"[a-zA-Z]", replacement_string="")
+        self.category_input.content.hint_text = "e.g. spring"
+
+    def words_method(self):
+        self.OWN = True
+        self.category_input.content.label = "Words"
+        self.category_input.content.value = ""
+        self.category_input.content.prefix_text = "[  "
+        self.category_input.content.suffix_text = "  ]"
+        self.category_input.content.input_filter=ft.InputFilter(allow=True, regex_string=r"[a-zA-Z, ]", replacement_string="")
+        self.category_input.content.hint_text = "e.g. tree, banana, sun"
 
 
 KEYPATH = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
@@ -189,3 +245,13 @@ def get_desktop_path():
     finally:
         winreg.CloseKey(key)
     return None
+
+
+def split_words(words: str) -> list[str]:
+    if "," not in words:
+        t = list(set(words.split(" ")))
+        if "" in t:
+            t.remove("")
+        return t
+    else:
+        return words.replace(" ", "").split(",")
