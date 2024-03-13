@@ -7,8 +7,8 @@ UI_TEST = True
 if __name__ == "__main__":
 
     if not UI_TEST:
-        generator = CBGenerator()
-        generator.run(amount=10, category="spring")
+        generator = CBGenerator("F:/Desktop/1123/")
+        generator.run(amount=50, category="drink")
         #print(generator.get_words())
 
         #generator.process_image()

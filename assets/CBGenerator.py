@@ -128,8 +128,9 @@ class HQImageScraper:
         word_urls = []
         driver.get("https://www.google.com/search?q=" + word + "&tbm=isch")
         try:
-            cookies = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, COOKIES_XPATH)))
+            cookies = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Zaakceptuj wszystko']")))
             cookies.click()
+            
         except Exception as e:
             print("COOKIES:", e)
             try:
@@ -138,7 +139,7 @@ class HQImageScraper:
             except Exception as e:
                 print("COOKIES:", e)
                 try:
-                    cookies = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'Zaakceptuj wszystko')]")))
+                    cookies = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, COOKIES_XPATH)))
                     cookies.click()
                 except Exception as e:
                     print("COOKIES:", e)
@@ -212,7 +213,7 @@ class HQImageScraper:
         Returns: 
             None 
         """
-        MULTI = False
+        MULTI = True
         start = dt.datetime.now()
 
         if MULTI:
