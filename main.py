@@ -15,5 +15,6 @@ if __name__ == "__main__":
 
         #HQImageScraper.download_multiple_images(words = generator.get_words())
     else:
-        ft.app(target=GUI.main)
+        window = GUI()
+        ft.app(target=window.main)
 
