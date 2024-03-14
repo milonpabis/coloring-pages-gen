@@ -12,6 +12,7 @@ import numpy as np
 import shutil
 import os
 from time import sleep
+from concurrent.futures import ThreadPoolExecutor
 
 
 URL = "https://relatedwords.io/"
@@ -19,6 +20,7 @@ MAIN_DIV_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[1]/div/div/div/div/div[1]/d
 IMG_CLASS = ".sFlh5c.pT0Scc.iPVvYb"
 COOKIES_XPATH = "/html/body/c-wiz/div/div/div/div[2]/div[1]/div[3]/div[1]/div[1]/form[2]/div/div/button/span"
 COOKIES_XPATH2 = "/html/body/c-wiz/div/div/div/div[2]/div[1]/div[3]/div[1]/div[1]/form[2]/div/div/button/div[3]"
+COOKIES_TEXT = "//span[text()='Zaakceptuj wszystko'] | //div[text()='Zaakceptuj wszystko']"
 
 
 class CBGenerator:
@@ -28,14 +30,15 @@ class CBGenerator:
 
     
     def run(self, amount: int = 20, category: str = "music", method: int = 3, words: list[str] = None, preview: bool = False) -> None:
+        oPath = self.__path + f"{category}_{amount}/"
         if not words:
             words = WordRandomizer.generate(category, int(amount/10))
-        os.makedirs(self.__path, exist_ok=True)
-        os.makedirs(self.__path + "ready/", exist_ok=True)
-        HQImageScraper.download_multiple_images(words, self.__path)
-        for image in os.listdir(self.__path):
+        os.makedirs(oPath, exist_ok=True)
+        os.makedirs(oPath + "ready/", exist_ok=True)
+        HQImageScraper.download_multiple_images(words, oPath)
+        for image in os.listdir(oPath):
             if image.endswith(".jpg") and image:
-                self.process_image(self.__path + image, method=method, preview=preview)
+                self.process_image(oPath + image, output_dir=oPath + "ready/", method=method, preview=preview)
             else: print("SKIPPED:", image)
 
     
@@ -43,7 +46,7 @@ class CBGenerator:
         return self.__path
     
 
-    def process_image(self, url: str, basename: str = "res", method: int = 1, preview: bool = False) -> None:
+    def process_image(self, url: str, output_dir: str, basename: str = "res", method: int = 1, preview: bool = False) -> None:
         """
         Processes the image by drawing its contours on white plane and saves it to the output directory.
 
@@ -82,7 +85,7 @@ class CBGenerator:
             cv.waitKey(0)
             cv.destroyAllWindows()
         
-        cv.imwrite(f"{self.__path}ready/" + f"{basename}{rd.randint(1, 9999999999)}.jpg", result)
+        cv.imwrite(f"{output_dir}" + f"{basename}{rd.randint(1, 9999999999)}.jpg", result)
 
 
 
@@ -128,7 +131,7 @@ class HQImageScraper:
         word_urls = []
         driver.get("https://www.google.com/search?q=" + word + "&tbm=isch")
         try:
-            cookies = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Zaakceptuj wszystko']")))
+            cookies = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, COOKIES_TEXT)))
             cookies.click()
             
         except Exception as e:
@@ -220,23 +223,23 @@ class HQImageScraper:
 
             threads = []
 
-            for word in words:
-                thread = threading.Thread(target=HQImageScraper.download_images, args=(word,path,))
-                threads.append(thread)
-                thread.start()
+            #for word in words:
+            #    thread = threading.Thread(target=HQImageScraper.download_images, args=(word,path,))
+            #    threads.append(thread)
+            #    thread.start()
 
-            for thread in threads:
-                thread.join()
+            #for thread in threads:
+            #    thread.join()
+
+            with ThreadPoolExecutor() as executor:
+                executor.map(HQImageScraper.download_images, words, [path for _ in range(len(words))])
         else:
             for word in words:
                 HQImageScraper.download_images(word, path)
 
         print("All images downloaded. TIME:", dt.datetime.now() - start)
 
-# TODO:
-        # 1. When skips a lot of images -> clicks a link - block it
-        # 2. Multithreading upgrade - concurret.futures
-        # 3. Cookies problem - fix it, make it universal
+
 
 
 

@@ -189,11 +189,11 @@ class GUI:
             if os.path.exists(self.path):
                 generator = CBGenerator(self.path)
                 if self.OWN:
-                    print(self.path, AM, split_words(CAT))
-                    #generator.run(amount=AM, words=split_words(CAT))
+                    #print(self.path, AM, split_words(CAT))
+                    generator.run(amount=AM, words=split_words(CAT))
                 else:
-                    print(self.path, AM, CAT)
-                    #generator.run(amount=AM, category=CAT)
+                    #print(self.path, AM, CAT)
+                    generator.run(amount=AM, category=CAT)
 
 
 
@@ -213,6 +213,9 @@ class GUI:
             self.path = path
         else:
             self.path = get_desktop_path()
+        self.path = self.path.replace("\\", "/")
+        if not self.path.endswith("/"):
+            self.path += "/"
 
     def category_method(self):
         self.OWN = False

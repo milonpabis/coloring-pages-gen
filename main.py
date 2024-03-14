@@ -7,8 +7,8 @@ UI_TEST = True
 if __name__ == "__main__":
 
     if not UI_TEST:
-        generator = CBGenerator("F:/Desktop/1123/")
-        generator.run(amount=50, category="drink")
+        generator = CBGenerator("F:/Desktop/")
+        generator.run(amount=20, category="water")
         #print(generator.get_words())
 
         #generator.process_image()
@@ -17,4 +17,12 @@ if __name__ == "__main__":
     else:
         window = GUI()
         ft.app(target=window.main)
+
+
+# TODO:
+        # 1. When skips a lot of images -> clicks a link - block it 
+        # 2. Add a bufforing circle for the image download
+        # 3. naming for words -> directory
+
+        
 
