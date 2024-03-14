@@ -13,6 +13,7 @@ class GUI:
         self.OWN = False
         self.page = None
 
+
     def main(self, page: ft.Page):
         self.page = page
         self.page.title = "CPGenerator"
@@ -149,6 +150,7 @@ class GUI:
 
         self.page.add(container)
 
+
     def reset(self, e):
         self.amount_input.shadow.color = "black"
         self.category_input.shadow.color = "black"
@@ -163,6 +165,7 @@ class GUI:
             pass
         self.page.update()
 
+
     def start(self, e):
         ERROR_GATE = False
         try:
@@ -171,8 +174,9 @@ class GUI:
                 raise Exception
             self.amount_input.shadow.color = "black"
         except Exception:       # AMOUNT ERROR
-            ERROR_GATE = True
-            self.amount_input.shadow.color = "#781414"
+            if not self.OWN:    # We don't specify the amount when we use our own words
+                ERROR_GATE = True
+                self.amount_input.shadow.color = "#781414"
 
         try:
             CAT = self.category_input.content.value
@@ -196,7 +200,6 @@ class GUI:
                     generator.run(amount=AM, category=CAT)
 
 
-
     def own_words(self, e):
         try:
             if not self.OWN:
@@ -208,6 +211,7 @@ class GUI:
             pass
         self.page.update()
 
+
     def change_dir(self, path):
         if path:
             self.path = path
@@ -217,6 +221,7 @@ class GUI:
         if not self.path.endswith("/"):
             self.path += "/"
 
+
     def category_method(self):
         self.OWN = False
         self.category_input.content.label = "Category"
@@ -225,6 +230,7 @@ class GUI:
         self.category_input.content.suffix_text = None
         self.category_input.content.input_filter=ft.InputFilter(allow=True, regex_string=r"[a-zA-Z]", replacement_string="")
         self.category_input.content.hint_text = "e.g. spring"
+
 
     def words_method(self):
         self.OWN = True
@@ -237,6 +243,7 @@ class GUI:
 
 
 KEYPATH = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
+
 
 def get_desktop_path():
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, KEYPATH, 0, winreg.KEY_READ)

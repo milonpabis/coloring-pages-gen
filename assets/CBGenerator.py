@@ -20,7 +20,7 @@ MAIN_DIV_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[1]/div/div/div/div/div[1]/d
 IMG_CLASS = ".sFlh5c.pT0Scc.iPVvYb"
 COOKIES_XPATH = "/html/body/c-wiz/div/div/div/div[2]/div[1]/div[3]/div[1]/div[1]/form[2]/div/div/button/span"
 COOKIES_XPATH2 = "/html/body/c-wiz/div/div/div/div[2]/div[1]/div[3]/div[1]/div[1]/form[2]/div/div/button/div[3]"
-COOKIES_TEXT = "//span[text()='Zaakceptuj wszystko'] | //div[text()='Zaakceptuj wszystko']"
+COOKIES_TEXT = "//span[text()='Accept all'] | //div[text()='Accept all']"
 
 
 class CBGenerator:
@@ -30,9 +30,11 @@ class CBGenerator:
 
     
     def run(self, amount: int = 20, category: str = "music", method: int = 3, words: list[str] = None, preview: bool = False) -> None:
-        oPath = self.__path + f"{category}_{amount}/"
         if not words:
             words = WordRandomizer.generate(category, int(amount/10))
+            oPath = self.__path + f"{category}_{amount}/"
+        else:
+            oPath = self.__path + f"{'_'.join([w[0] for w in words])}/"
         os.makedirs(oPath, exist_ok=True)
         os.makedirs(oPath + "ready/", exist_ok=True)
         HQImageScraper.download_multiple_images(words, oPath)
@@ -127,7 +129,9 @@ class HQImageScraper:
         """
         chrome_options = webdriver.ChromeOptions()
         chrome_options.headless = False
+        chrome_options.add_argument("--lang=en-GB")
         driver = webdriver.Chrome(options=chrome_options)
+        driver.minimize_window()
         word_urls = []
         driver.get("https://www.google.com/search?q=" + word + "&tbm=isch")
         try:

@@ -2,13 +2,13 @@ from assets.CBGenerator import CBGenerator, HQImageScraper
 from assets.gui import GUI, ft
 
 
-UI_TEST = True
+UI_TEST = False
 
 if __name__ == "__main__":
 
     if not UI_TEST:
         generator = CBGenerator("F:/Desktop/")
-        generator.run(amount=20, category="water")
+        generator.run(amount=30, category="male")
         #print(generator.get_words())
 
         #generator.process_image()
@@ -20,9 +20,9 @@ if __name__ == "__main__":
 
 
 # TODO:
-        # 1. When skips a lot of images -> clicks a link - block it 
-        # 2. Add a bufforing circle for the image download
-        # 3. naming for words -> directory
+        # add a bufforing circle for the image download
+        # no need to put amount when words mode
+        # missing photos 
 
         
 
