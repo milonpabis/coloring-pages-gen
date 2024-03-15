@@ -2,7 +2,7 @@ from assets.CBGenerator import CBGenerator, HQImageScraper
 from assets.gui import GUI, ft
 
 
-UI_TEST = False
+UI_TEST = True
 
 if __name__ == "__main__":
 
@@ -20,7 +20,6 @@ if __name__ == "__main__":
 
 
 # TODO:
-        # add a bufforing circle for the image download
         # no need to put amount when words mode
         # missing photos 
 

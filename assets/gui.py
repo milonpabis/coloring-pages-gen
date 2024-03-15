@@ -27,7 +27,7 @@ class GUI:
 
         self.page.overlay.append(self.picker)
         
-
+        #  ----- LAYOUT -----
 
         # HEADER CONTAINER
         self.header = ft.Container(
@@ -93,11 +93,12 @@ class GUI:
             border=ft.border.all(2, "blue"),
             shadow=ft.BoxShadow(spread_radius=4, blur_radius=10, color="black"))
         
-
+        self.icon_button = ft.IconButton(icon="folder", icon_size=50, on_click=lambda e: self.picker.get_directory_path())
+        self.circle = ft.ProgressRing()
 
         # FILE PICKER CONTAINER
-        file_path_selector = ft.Container(
-            content = ft.IconButton(icon="folder", icon_size=50, on_click=lambda e: self.picker.get_directory_path()),
+        self.file_path_selector = ft.Container(
+            content = self.icon_button,
             border_radius=30,
             width=self.page.window_width*0.8,
             height=self.page.window_height*0.1,
@@ -127,11 +128,12 @@ class GUI:
             border=ft.border.all(2, "blue"),
             shadow=ft.BoxShadow(spread_radius=4, blur_radius=10, color="black"))
         
+        
 
         # MAIN CONTAINER
         container = ft.Container(
                 content=ft.Container(
-                         content=ft.Column(controls=[self.header, self.category_input, self.amount_input, file_path_selector, self.buttons]),
+                         content=ft.Column(controls=[self.header, self.category_input, self.amount_input, self.file_path_selector, self.buttons]),
                          bgcolor=ft.colors.BLUE_GREY_200,
                          opacity=0.9,
                          alignment=ft.alignment.center,
@@ -151,9 +153,13 @@ class GUI:
         self.page.add(container)
 
 
-    def reset(self, e):
+
+    # ----- METHODS -----
+
+    def reset(self, *args):
         self.amount_input.shadow.color = "black"
         self.category_input.shadow.color = "black"
+        self.file_path_selector.content = self.icon_button
 
         try:
             self.amount_input.content.value = ""
@@ -166,7 +172,7 @@ class GUI:
         self.page.update()
 
 
-    def start(self, e):
+    def start(self, *args):
         ERROR_GATE = False
         try:
             AM = round(int(self.amount_input.content.value), -1)
@@ -191,6 +197,8 @@ class GUI:
         ### GENERATE COLORING PAGES
         if not ERROR_GATE:
             if os.path.exists(self.path):
+                self.file_path_selector.content = self.circle
+                self.page.update()
                 generator = CBGenerator(self.path)
                 if self.OWN:
                     #print(self.path, AM, split_words(CAT))
@@ -198,9 +206,10 @@ class GUI:
                 else:
                     #print(self.path, AM, CAT)
                     generator.run(amount=AM, category=CAT)
+                self.reset()
 
 
-    def own_words(self, e):
+    def own_words(self, e=None):
         try:
             if not self.OWN:
                 self.words_method()
