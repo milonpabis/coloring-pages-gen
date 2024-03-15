@@ -20,7 +20,6 @@ if __name__ == "__main__":
 
 
 # TODO:
-        # no need to put amount when words mode
         # missing photos 
 
         

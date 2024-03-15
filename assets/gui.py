@@ -202,7 +202,7 @@ class GUI:
                 generator = CBGenerator(self.path)
                 if self.OWN:
                     #print(self.path, AM, split_words(CAT))
-                    generator.run(amount=AM, words=split_words(CAT))
+                    generator.run(words=split_words(CAT))
                 else:
                     #print(self.path, AM, CAT)
                     generator.run(amount=AM, category=CAT)
