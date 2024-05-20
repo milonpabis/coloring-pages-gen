@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import ElementClickInterceptedException
 import threading
 import datetime as dt
 import cv2 as cv
@@ -16,11 +17,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 URL = "https://relatedwords.io/"
-MAIN_DIV_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[1]/div/div/div/div/div[1]/div[1]/span/div[1]/div[1]"
+MAIN_DIV_XPATH = "/html/body/div[4]/div/div[12]/div/div[2]/div[2]/div/div/div/div/div[1]/div/div"
 IMG_CLASS = ".sFlh5c.pT0Scc.iPVvYb"
 COOKIES_XPATH = "/html/body/c-wiz/div/div/div/div[2]/div[1]/div[3]/div[1]/div[1]/form[2]/div/div/button/span"
 COOKIES_XPATH2 = "/html/body/c-wiz/div/div/div/div[2]/div[1]/div[3]/div[1]/div[1]/form[2]/div/div/button/div[3]"
 COOKIES_TEXT = "//span[text()='Accept all'] | //div[text()='Accept all']"
+
 
 
 class CBGenerator:
@@ -130,8 +132,9 @@ class HQImageScraper:
         chrome_options = webdriver.ChromeOptions()
         chrome_options.headless = False
         chrome_options.add_argument("--lang=en-GB")
-        driver = webdriver.Chrome(options=chrome_options)
-        driver.minimize_window()
+        chrome_options.add_argument("--disable-popup-blocking")
+        driver = webdriver.Chrome(chrome_options)
+        #driver.minimize_window()
         word_urls = []
         driver.get("https://www.google.com/search?q=" + word + "&tbm=isch")
         try:
@@ -153,31 +156,39 @@ class HQImageScraper:
                     sleep(30)
 
 
-        container = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.XPATH, MAIN_DIV_XPATH)))
-        urls = container.find_elements(By.TAG_NAME, "img")
+        #container = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.XPATH, MAIN_DIV_XPATH)))
+        urls = driver.find_elements(By.TAG_NAME, "img")
         #print("url", urls)
+        
         cc = 0
         while not len(word_urls) == 10:
             url = urls[cc]
+            #print(url.get_attribute("src"))
             try:
-                if url.get_attribute("data-sz") != "16":
+                if not ("FAVICON" in url.get_attribute("src") or url.get_attribute("src") == "" or "google" in url.get_attribute("src")):
                     raise Exception
             except Exception:
                 try:
+                    if not url.get_attribute("src"):
+                        raise Exception("no src")
                     url.click()
+                    cc += 1
+                    
                     try:
                         img = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, IMG_CLASS)))
                         if img.get_attribute("src") not in word_urls and img.get_attribute("src") != None:
                             if not img.get_attribute("src").endswith(".gif"):
                                 word_urls.append(img.get_attribute("src"))
                     except Exception:
-                        pass
-                except Exception:
-                    pass
+                        print("ERROR", "image locate")
+                except ElementClickInterceptedException:
+                    print("ERROR", "click intercept")
+                except Exception as e:
+                    print(e)
             cc += 1
 
         driver.quit()
-
+        print(word_urls)
         return word_urls
 
 
@@ -198,7 +209,7 @@ class HQImageScraper:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
         for url in urls:
             try:
-                response = requests.get(url, headers=headers)
+                response = requests.get(url, headers=headers, timeout=5)
                 try:
                     response.raise_for_status()
                 except requests.exceptions.HTTPError as e:
